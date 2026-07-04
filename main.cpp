@@ -11,9 +11,9 @@
 int main() {
     std::cout << "Start...\n" << std::flush;
 
-    MnistDataset train = load_mnist_csv("mnist_train.csv");
+    MnistDataset train = load_mnist("train-images-idx3-ubyte", "train-labels-idx1-ubyte");
+    MnistDataset test  = load_mnist("t10k-images-idx3-ubyte",  "t10k-labels-idx1-ubyte");
 
-    MnistDataset test  = load_mnist_csv("mnist_test.csv");
 
     CNN net;
 

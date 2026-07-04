@@ -3,7 +3,7 @@
 30	1265	8048885676481010	CMakeFiles/ml_project.dir/MaxPool/max_pool.cpp.obj	cc5d11d7b7a87de
 20	1965	8048885676418097	CMakeFiles/ml_project.dir/FC_Layer/fc_layer.cpp.obj	b78cddfc078fa26b
 12	3053	8048885676336569	CMakeFiles/ml_project.dir/conv2d/conv2d.cpp.obj	681c618f5a235250
-7	10073	8048890876043723	CMakeFiles/ml_project.dir/main.cpp.obj	aeb92056c2d8e406
-10076	10305	8048890976781084	ml_project.exe	b9d88e870f91d284
 8	8552	8048891775841979	CMakeFiles/ml_project.dir/main.cpp.obj	aeb92056c2d8e406
 8553	8778	8048891861344639	ml_project.exe	b9d88e870f91d284
+7	7858	8048912716741717	CMakeFiles/ml_project.dir/main.cpp.obj	aeb92056c2d8e406
+7859	8092	8048912795266889	ml_project.exe	b9d88e870f91d284

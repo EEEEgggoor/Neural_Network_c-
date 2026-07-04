@@ -3,108 +3,64 @@
 #include <vector>
 #include <string>
 #include <stdexcept>
-#include <clocale>
+#include <cstdint>
 
+
+inline int32_t read_int32_be(std::ifstream& file) {
+    unsigned char bytes[4];
+    file.read(reinterpret_cast<char*>(bytes), 4);
+    return (bytes[0] << 24) | (bytes[1] << 16) | (bytes[2] << 8) | bytes[3];
+}
 
 struct MnistDataset {
-    std::vector<std::vector<float>> images; // каждая картинка - плоский вектор из 784 чисел [0,1]
-    std::vector<int> labels;                // правильный класс (0-9) для каждой картинки
+    std::vector<std::vector<float>> images;
+    std::vector<int> labels;
 };
 
-// Функция загружает датасет из CSV файла.
-inline MnistDataset load_mnist_csv(const std::string& csv_path, bool has_header = true) {
-    std::setlocale(LC_ALL, "Russian");
+inline MnistDataset load_mnist(const std::string& images_path, const std::string& labels_path) {
+    std::ifstream img_file(images_path, std::ios::binary);
+    std::ifstream lbl_file(labels_path, std::ios::binary);
+    if (!img_file || !lbl_file)
+        throw std::runtime_error("Не удалось открыть файлы MNIST");
 
-    std::ifstream file(csv_path);
-    if (!file)
-        throw std::runtime_error("Не удалось открыть CSV файл MNIST: " + csv_path);
+    // Заголовок images-файла: magic number, число картинок, высота, ширина
+    int32_t img_magic = read_int32_be(img_file);
+    int32_t num_images = read_int32_be(img_file);
+    int32_t rows = read_int32_be(img_file);
+    int32_t cols = read_int32_be(img_file);
+
+    // Заголовок labels-файла: magic number, число меток
+    int32_t lbl_magic = read_int32_be(lbl_file);
+    int32_t num_labels = read_int32_be(lbl_file);
+
+    // Проверка сигнатуры - защита от повреждённого/неверного файла
+    if (img_magic != 0x00000803 || lbl_magic != 0x00000801)
+        throw std::runtime_error("Неверный формат файла MNIST");
+    if (num_images != num_labels)
+        throw std::runtime_error("Число картинок и меток не совпадает");
 
     MnistDataset dataset;
-    std::string line;
-    size_t line_counter = 0;
+    dataset.images.resize(num_images);
+    dataset.labels.resize(num_images);
 
-    // Пропускаем строку заголовка, если она есть
-    if (has_header) {
-        if (std::getline(file, line)) {
-            line_counter++;
-        }
-    }
+    int image_size = rows * cols; // 28*28 = 784
 
-    // Резервируем память (для train обычно 60000, для test - 10000)
-    dataset.images.reserve(60000);
-    dataset.labels.reserve(60000);
+    for (int i = 0; i < num_images; ++i) {
+        // Пиксели идут подряд, по 1 байту (0-255) на пиксель, без разделителей
+        std::vector<unsigned char> raw_pixels(image_size);
+        img_file.read(reinterpret_cast<char*>(raw_pixels.data()), image_size);
 
-    while (std::getline(file, line)) {
-        line_counter++;
+        // Нормализация 0-255 -> 0.0-1.0: сеть обучается лучше на маленьких
+        // числах, а Xavier-инициализация весов рассчитана на входы такого масштаба
+        std::vector<float> pixels(image_size);
+        for (int p = 0; p < image_size; ++p)
+            pixels[p] = raw_pixels[p] / 255.0f;
 
-        // Удаляем символ \r в конце строки, если файл в формате Windows (CRLF)
-        if (!line.empty() && line.back() == '\r') {
-            line.pop_back();
-        }
+        dataset.images[i] = std::move(pixels); // move вместо копии - экономим время на 60000 картинках
 
-        // Пропускаем пустые строки
-        if (line.empty()) continue;
-
-        size_t start_pos = 0;
-        size_t end_pos = line.find(',', start_pos);
-        
-        if (end_pos == std::string::npos) {
-            // Если в строке вообще нет запятых — пропускаем или сигнализируем об ошибке
-            continue; 
-        }
-
-        // 1. Читаем метку класса (первое число в строке)
-        int label = 0;
-        std::string label_token = line.substr(start_pos, end_pos - start_pos);
-        try {
-            label = std::stoi(label_token);
-        } catch (const std::invalid_argument& e) {
-            throw std::runtime_error("Ошибка stoi на строке " + std::to_string(line_counter) + 
-                                     ". Не удалось распарсить метку класса: \"" + label_token + "\"");
-        } catch (const std::out_of_range& e) {
-            throw std::runtime_error("Ошибка stoi на строке " + std::to_string(line_counter) + 
-                                     ". Значение метки выходит за границы int: \"" + label_token + "\"");
-        }
-        
-        start_pos = end_pos + 1;
-
-        // 2. Читаем 784 пикселя
-        std::vector<float> pixels;
-        pixels.reserve(784);
-
-        while ((end_pos = line.find(',', start_pos)) != std::string::npos) {
-            std::string pixel_token = line.substr(start_pos, end_pos - start_pos);
-            try {
-                float pixel_val = std::stof(pixel_token) / 255.0f;
-                pixels.push_back(pixel_val);
-            } catch (const std::exception& e) {
-                throw std::runtime_error("Ошибка stof на строке " + std::to_string(line_counter) + 
-                                         ". Не удалось распарсить пиксель: \"" + pixel_token + "\"");
-            }
-            start_pos = end_pos + 1;
-        }
-
-        // Не забываем про последний пиксель в строке (после него нет запятой)
-        if (start_pos < line.size()) {
-            std::string pixel_token = line.substr(start_pos);
-            try {
-                float pixel_val = std::stof(pixel_token) / 255.0f;
-                pixels.push_back(pixel_val);
-            } catch (const std::exception& e) {
-                throw std::runtime_error("Ошибка stof на строке " + std::to_string(line_counter) + 
-                                         ". Не удалось распарсить последний пиксель: \"" + pixel_token + "\"");
-            }
-        }
-
-        // Защита от кривых данных
-        if (pixels.size() != 784) {
-            throw std::runtime_error("Ошибка на строке " + std::to_string(line_counter) + 
-                                     ". Неверное количество пикселей. Ожидалось 784, получено " + std::to_string(pixels.size()));
-        }
-
-        // Сохраняем данные
-        dataset.labels.push_back(label);
-        dataset.images.push_back(std::move(pixels));
+        unsigned char label_byte;
+        lbl_file.read(reinterpret_cast<char*>(&label_byte), 1);
+        dataset.labels[i] = static_cast<int>(label_byte);
     }
 
     return dataset;
