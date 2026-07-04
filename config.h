@@ -3,7 +3,7 @@
 struct conv_params {
     int in_channels;
     int in_height;
-    int in_width;      // было in_weight — небольшая опечатка, лучше поправить (weight — вес, width — ширина)
+    int in_width;
     int count_kernel;
     int size_kernel;
 
@@ -43,7 +43,7 @@ public:
         // conv1 — параметры входа приходят СНАРУЖИ (это исходные данные, MNIST 1x28x28)
         conv1 = { input_channels, input_height, input_width, conv1_filters, conv1_kernel };
 
-        // pool1 — параметры входа берутся из ВЫХОДА conv1, а не набираются руками
+        // pool1 — параметры входа берутся из ВЫХОДА conv1
         pool1 = { conv1.out_channels(), conv1.out_height(), conv1.out_width(), pool1_size };
 
         // conv2 — параметры входа берутся из ВЫХОДА pool1
@@ -52,7 +52,7 @@ public:
         // pool2 — из выхода conv2
         pool2 = { conv2.out_channels(), conv2.out_height(), conv2.out_width(), pool2_size };
 
-        // fc1 — in_feat считается из выхода pool2 (каналы * высота * ширина - вот тут точное 16*5*5=400 больше не пишем руками!)
+        // fc1 — in_feat считается из выхода pool2 (каналы * высота * ширина)
         int flat_size = pool2.out_channels() * pool2.out_height() * pool2.out_width();
         fc1 = { flat_size, fc1_out };
 
