@@ -1,35 +1,49 @@
 #pragma once
+
 #include "conv2d/conv2d.h"
 #include "ReLu/relu.h"
 #include "MaxPool/max_pool.h"
 #include "flatten.h"
 #include "fc_layer.h"
+#include "config.h"
 #include <string>
 #include <fstream>
 
 
 struct CNN {
-    Conv2d conv1;      // 1x28x28  -> 8x26x26  
+    Conv2d conv1;
     ReLu relu1;
-    MaxPool pool1;   // 8x26x26  -> 8x13x13  
-
-    Conv2d conv2;      // 8x13x13  -> 16x11x11 
+    MaxPool pool1;
+    Conv2d conv2;
     ReLu relu2;
-    MaxPool pool2;   // 16x11x11 -> 16x5x5
+    MaxPool pool2;
 
-    FlattenLayer flatten; // 16x5x5 -> 400 
+    FlattenLayer flatten;
 
-    FC_Layer fc1;       // 400 -> 64   
+    FC_Layer fc1;
     ReLu relu3;
-    FC_Layer fc2;       // 64 -> 10   
+    FC_Layer fc2;
+    
+    Config cfg; 
 
-    CNN()
-        : conv1(1, 28, 28, 8, 3),
-          pool1(8, 26, 26, 2),
-          conv2(8, 13, 13, 16, 3),
-          pool2(16, 11, 11, 2),
-          fc1(16 * 5 * 5, 64),
-          fc2(64, 10)
+    CNN() :
+        cfg(1, 28, 28,      // вход: 1 канал, 28x28 (MNIST)
+            8, 3, 2,        // conv1: 8 фильтров, ядро 3, pool 2
+            16, 3, 2,       // conv2: 16 фильтров, ядро 3, pool 2
+            64),            // fc1 выход 64
+
+        conv1(cfg.conv1.in_channels, cfg.conv1.in_height, cfg.conv1.in_width,
+              cfg.conv1.count_kernel, cfg.conv1.size_kernel),
+
+        pool1(cfg.pool1.channels, cfg.pool1.in_height, cfg.pool1.in_width, cfg.pool1.pool_size),
+
+        conv2(cfg.conv2.in_channels, cfg.conv2.in_height, cfg.conv2.in_width,
+              cfg.conv2.count_kernel, cfg.conv2.size_kernel),
+
+        pool2(cfg.pool2.channels, cfg.pool2.in_height, cfg.pool2.in_width, cfg.pool2.pool_size),
+
+        fc1(cfg.fc1.in_feat, cfg.fc1.out_feat),
+        fc2(cfg.fc2.in_feat, cfg.fc2.out_feat)
     {}
 
 
