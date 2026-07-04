@@ -9,9 +9,10 @@
 #include "image_loader.h"
 
 int main() {
-    std::setlocale(LC_ALL, "Russian");
-    std::cout << "Start...\n";
+    std::cout << "Start...\n" << std::flush;
+
     MnistDataset train = load_mnist_csv("mnist_train.csv");
+
     MnistDataset test  = load_mnist_csv("mnist_test.csv");
 
     CNN net;
@@ -19,14 +20,14 @@ int main() {
     std::ifstream weights_check("mnist_cnn_weights.bin");
     if (weights_check.good()) {
         weights_check.close();
-        std::cout << "Загружены сохранённые веса, обучение пропущено.\n";
+        std::cout << "Loaded saved weights, training skipped.\n";
         net.load("mnist_cnn_weights.bin");
 
         auto img = load_image_as_mnist_input("my_digit.png");
         auto logits = net.forward(img);
 
         int predicted = std::max_element(logits.begin(), logits.end()) - logits.begin();
-        std::cout << "Предсказанная цифра: " << predicted << "\n";
+        std::cout << "Predicted digit: " << predicted << "\n";
         
 
     } else {
@@ -38,7 +39,8 @@ int main() {
 
         std::random_device rd;
         std::mt19937 g(rd());
-
+        std::cout << "Start epoch...\n";
+         
         for (int epoch = 0; epoch < epochs; ++epoch) {
             float total_loss = 0.0f;
             int correct = 0;
@@ -79,7 +81,7 @@ int main() {
         std::cout << "Test accuracy: " << (100.0f * test_correct / test.images.size()) << "%\n";
 
         net.save("mnist_cnn_weights.bin");
-        std::cout << "Веса сохранены в mnist_cnn_weights.bin\n";
+        std::cout << "Weights saved to mnist_cnn_weights.bin\n";
     }
     std::getchar();
     return 0;

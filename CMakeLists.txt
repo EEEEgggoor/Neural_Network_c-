@@ -13,7 +13,7 @@ set(SOURCES
 )
 
 add_executable(ml_project ${SOURCES})
-target_compile_definitions(ml_project PRIVATE GLIBCXX_ASSERTIONS)
+target_compile_definitions(ml_project PRIVATE _GLIBCXX_ASSERTIONS)
 target_compile_options(ml_project PRIVATE -g)
 
 target_include_directories(ml_project PRIVATE
@@ -23,3 +23,9 @@ target_include_directories(ml_project PRIVATE
     MaxPool
     ReLu
 )
+
+if(NOT CMAKE_BUILD_TYPE)
+    set(CMAKE_BUILD_TYPE Release)
+endif()
+
+set(CMAKE_CXX_FLAGS_RELEASE "-O2 -DNDEBUG")

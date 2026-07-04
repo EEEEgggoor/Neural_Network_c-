@@ -12,7 +12,7 @@
 
 # =============================================================================
 # Project: MnistNeuralNetwork
-# Configurations: 
+# Configurations: Release
 # =============================================================================
 
 #############################################
@@ -20,6 +20,11 @@
 
 ninja_required_version = 1.5
 
+
+#############################################
+# Set configuration variable for custom commands.
+
+CONFIGURATION = Release
 # =============================================================================
 # Include auxiliary files.
 
@@ -44,46 +49,51 @@ cmake_ninja_workdir = D$:/NN/build/
 
 build cmake_object_order_depends_target_ml_project: phony || .
 
-build CMakeFiles/ml_project.dir/main.cpp.obj: CXX_COMPILER__ml_project_unscanned_ D$:/NN/main.cpp || cmake_object_order_depends_target_ml_project
-  DEFINES = -DGLIBCXX_ASSERTIONS
+build CMakeFiles/ml_project.dir/main.cpp.obj: CXX_COMPILER__ml_project_unscanned_Release D$:/NN/main.cpp || cmake_object_order_depends_target_ml_project
+  CONFIG = Release
+  DEFINES = -D_GLIBCXX_ASSERTIONS
   DEP_FILE = CMakeFiles\ml_project.dir\main.cpp.obj.d
-  FLAGS = -std=gnu++17 -g
+  FLAGS = -O2 -DNDEBUG -std=gnu++17 -g
   INCLUDES = -ID:/NN/. -ID:/NN/conv2d -ID:/NN/FC_Layer -ID:/NN/MaxPool -ID:/NN/ReLu
   OBJECT_DIR = CMakeFiles\ml_project.dir
   OBJECT_FILE_DIR = CMakeFiles\ml_project.dir
   TARGET_SUPPORT_DIR = CMakeFiles\ml_project.dir
 
-build CMakeFiles/ml_project.dir/conv2d/conv2d.cpp.obj: CXX_COMPILER__ml_project_unscanned_ D$:/NN/conv2d/conv2d.cpp || cmake_object_order_depends_target_ml_project
-  DEFINES = -DGLIBCXX_ASSERTIONS
+build CMakeFiles/ml_project.dir/conv2d/conv2d.cpp.obj: CXX_COMPILER__ml_project_unscanned_Release D$:/NN/conv2d/conv2d.cpp || cmake_object_order_depends_target_ml_project
+  CONFIG = Release
+  DEFINES = -D_GLIBCXX_ASSERTIONS
   DEP_FILE = CMakeFiles\ml_project.dir\conv2d\conv2d.cpp.obj.d
-  FLAGS = -std=gnu++17 -g
+  FLAGS = -O2 -DNDEBUG -std=gnu++17 -g
   INCLUDES = -ID:/NN/. -ID:/NN/conv2d -ID:/NN/FC_Layer -ID:/NN/MaxPool -ID:/NN/ReLu
   OBJECT_DIR = CMakeFiles\ml_project.dir
   OBJECT_FILE_DIR = CMakeFiles\ml_project.dir\conv2d
   TARGET_SUPPORT_DIR = CMakeFiles\ml_project.dir
 
-build CMakeFiles/ml_project.dir/FC_Layer/fc_layer.cpp.obj: CXX_COMPILER__ml_project_unscanned_ D$:/NN/FC_Layer/fc_layer.cpp || cmake_object_order_depends_target_ml_project
-  DEFINES = -DGLIBCXX_ASSERTIONS
+build CMakeFiles/ml_project.dir/FC_Layer/fc_layer.cpp.obj: CXX_COMPILER__ml_project_unscanned_Release D$:/NN/FC_Layer/fc_layer.cpp || cmake_object_order_depends_target_ml_project
+  CONFIG = Release
+  DEFINES = -D_GLIBCXX_ASSERTIONS
   DEP_FILE = CMakeFiles\ml_project.dir\FC_Layer\fc_layer.cpp.obj.d
-  FLAGS = -std=gnu++17 -g
+  FLAGS = -O2 -DNDEBUG -std=gnu++17 -g
   INCLUDES = -ID:/NN/. -ID:/NN/conv2d -ID:/NN/FC_Layer -ID:/NN/MaxPool -ID:/NN/ReLu
   OBJECT_DIR = CMakeFiles\ml_project.dir
   OBJECT_FILE_DIR = CMakeFiles\ml_project.dir\FC_Layer
   TARGET_SUPPORT_DIR = CMakeFiles\ml_project.dir
 
-build CMakeFiles/ml_project.dir/MaxPool/max_pool.cpp.obj: CXX_COMPILER__ml_project_unscanned_ D$:/NN/MaxPool/max_pool.cpp || cmake_object_order_depends_target_ml_project
-  DEFINES = -DGLIBCXX_ASSERTIONS
+build CMakeFiles/ml_project.dir/MaxPool/max_pool.cpp.obj: CXX_COMPILER__ml_project_unscanned_Release D$:/NN/MaxPool/max_pool.cpp || cmake_object_order_depends_target_ml_project
+  CONFIG = Release
+  DEFINES = -D_GLIBCXX_ASSERTIONS
   DEP_FILE = CMakeFiles\ml_project.dir\MaxPool\max_pool.cpp.obj.d
-  FLAGS = -std=gnu++17 -g
+  FLAGS = -O2 -DNDEBUG -std=gnu++17 -g
   INCLUDES = -ID:/NN/. -ID:/NN/conv2d -ID:/NN/FC_Layer -ID:/NN/MaxPool -ID:/NN/ReLu
   OBJECT_DIR = CMakeFiles\ml_project.dir
   OBJECT_FILE_DIR = CMakeFiles\ml_project.dir\MaxPool
   TARGET_SUPPORT_DIR = CMakeFiles\ml_project.dir
 
-build CMakeFiles/ml_project.dir/ReLu/relu.cpp.obj: CXX_COMPILER__ml_project_unscanned_ D$:/NN/ReLu/relu.cpp || cmake_object_order_depends_target_ml_project
-  DEFINES = -DGLIBCXX_ASSERTIONS
+build CMakeFiles/ml_project.dir/ReLu/relu.cpp.obj: CXX_COMPILER__ml_project_unscanned_Release D$:/NN/ReLu/relu.cpp || cmake_object_order_depends_target_ml_project
+  CONFIG = Release
+  DEFINES = -D_GLIBCXX_ASSERTIONS
   DEP_FILE = CMakeFiles\ml_project.dir\ReLu\relu.cpp.obj.d
-  FLAGS = -std=gnu++17 -g
+  FLAGS = -O2 -DNDEBUG -std=gnu++17 -g
   INCLUDES = -ID:/NN/. -ID:/NN/conv2d -ID:/NN/FC_Layer -ID:/NN/MaxPool -ID:/NN/ReLu
   OBJECT_DIR = CMakeFiles\ml_project.dir
   OBJECT_FILE_DIR = CMakeFiles\ml_project.dir\ReLu
@@ -97,7 +107,9 @@ build CMakeFiles/ml_project.dir/ReLu/relu.cpp.obj: CXX_COMPILER__ml_project_unsc
 #############################################
 # Link the executable ml_project.exe
 
-build ml_project.exe: CXX_EXECUTABLE_LINKER__ml_project_ CMakeFiles/ml_project.dir/main.cpp.obj CMakeFiles/ml_project.dir/conv2d/conv2d.cpp.obj CMakeFiles/ml_project.dir/FC_Layer/fc_layer.cpp.obj CMakeFiles/ml_project.dir/MaxPool/max_pool.cpp.obj CMakeFiles/ml_project.dir/ReLu/relu.cpp.obj
+build ml_project.exe: CXX_EXECUTABLE_LINKER__ml_project_Release CMakeFiles/ml_project.dir/main.cpp.obj CMakeFiles/ml_project.dir/conv2d/conv2d.cpp.obj CMakeFiles/ml_project.dir/FC_Layer/fc_layer.cpp.obj CMakeFiles/ml_project.dir/MaxPool/max_pool.cpp.obj CMakeFiles/ml_project.dir/ReLu/relu.cpp.obj
+  CONFIG = Release
+  FLAGS = -O2 -DNDEBUG
   LINK_LIBRARIES = -lkernel32 -luser32 -lgdi32 -lwinspool -lshell32 -lole32 -loleaut32 -luuid -lcomdlg32 -ladvapi32
   OBJECT_DIR = CMakeFiles\ml_project.dir
   POST_BUILD = cd .
