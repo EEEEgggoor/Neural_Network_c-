@@ -1,7 +1,7 @@
 #include <iostream>
 #include <algorithm>
-#include <numeric>  
-#include <random>   
+#include <numeric>
+#include <random>
 #include <clocale>
 #include <string>
 #include "nn.h"
@@ -34,7 +34,6 @@ int main() {
 
         std::string predicted = decode(logits);
         std::cout << "Predicted digit: " << predicted << "\n";
-        
 
     } else {
 
@@ -42,26 +41,57 @@ int main() {
         std::vector<CVLSample> test  = load_cvl_dataset("cvl-strings-eval");
 
         const float lr = 0.00005f;
-        const int epochs = 10;
+        const int epochs = 5;
+
+        // Максимальная норма градиента после clip
+        const float grad_clip_norm = 1.0f;
+
 
         std::cout << "Start epoch...\n";
-         
+
         for (int epoch = 0; epoch < epochs; ++epoch) {
             float total_loss = 0.0f;
             int correct = 0;
-
-
+            int used_steps = 0; // сколько шагов реально пошло в backward/update
 
             for (size_t step = 0; step < train.size(); ++step) {
                 size_t i = step;
 
+                // Пропускаем примеры, для которых меток физически больше
+                if (2 * (int)train[i].label.size() + 1 > 98) continue;
+
                 auto logits = net.forward(train[i].image);
+
+                // Защита от уже испорченных (NaN/inf) логитов
+                bool has_bad_logits = false;
+                for (const auto& row : logits) {
+                    for (float v : row) {
+                        if (!std::isfinite(v)) {
+                            has_bad_logits = true;
+                            break;
+                        }
+                    }
+                    if (has_bad_logits) break;
+                }
+
+                if (has_bad_logits) {
+                    std::cout << "Error: NaN/inf in logits on step " << step << " - SKIP\n";
+                    continue;
+                }
 
                 std::vector<std::vector<float>> grad;
                 auto p = softmax_T(logits);
                 float loss = ctc_loss_and_grad(p, train[i].label, grad);
-                net.clip_gradients(grad, 5.0f);
+
+
+                if (!std::isfinite(loss)) {
+                    std::cout << "Skip step " << step << ", loss is NaN/inf\n";
+                    continue;
+                }
+
+                net.clip_gradients(grad, grad_clip_norm);
                 total_loss += loss;
+                used_steps++;
 
                 std::string predicted = decode(logits);
                 if (predicted == label_to_string(train[i].label)) correct++;
@@ -69,14 +99,15 @@ int main() {
                 net.backward(grad);
                 net.update(lr);
 
-                if (step % 5000 == 0)
+                if (step % 100 == 0) {
                     std::cout << "Epoch " << epoch << " sample " << step
-                            << " loss: " << loss << "\n";
+                              << " loss: " << loss << "\n";
+                }
             }
 
             std::cout << "Epoch " << epoch
-                    << " avg loss: " << total_loss / train.size()
-                    << " train accuracy: " << (100.0f * correct / train.size()) << "%\n";
+                      << " avg loss: " << (used_steps ? total_loss / used_steps : 0.0f)
+                      << " train accuracy: " << (100.0f * correct / train.size()) << "%\n";
         }
 
         int test_correct = 0;
