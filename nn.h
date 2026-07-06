@@ -34,6 +34,7 @@ struct CNN {
     void clip_gradients(std::vector<std::vector<float>>& grad, float max_norm) {
         double norm_sq = 0.0;
         bool has_nan = false;
+        
         for (auto& row : grad)
             for (float v : row) {
                 if (!std::isfinite(v)) { has_nan = true; break; }
@@ -49,6 +50,29 @@ struct CNN {
             float scale = (float)(max_norm / norm);
             for (auto& row : grad)
                 for (float& v : row) v *= scale;
+        }
+    }
+
+    void clip_param_gradients(float max_norm) {
+        double norm_sq = conv1.grad_squared_norm()
+                        + conv2.grad_squared_norm()
+                        + fc1.grad_squared_norm();
+
+        double norm = std::sqrt(norm_sq);
+
+        if (!std::isfinite(norm)) {
+            // градиенты весов уже испортились - обнуляем шаг целиком
+            conv1.scale_grad(0.0f);
+            conv2.scale_grad(0.0f);
+            fc1.scale_grad(0.0f);
+            return;
+        }
+
+        if (norm > max_norm) {
+            float scale = (float)(max_norm / norm);
+            conv1.scale_grad(scale);
+            conv2.scale_grad(scale);
+            fc1.scale_grad(scale);
         }
     }
 

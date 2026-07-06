@@ -11,6 +11,9 @@ public:
     void save_w(std::ofstream &in) override;
     void load_w(std::ifstream &out) override;
 
+    double grad_squared_norm() const;   // сумма квадратов dK и dbias
+    void scale_grad(float scale);       // умножить dK и dbias на scale
+
     int in_weight() const { return out_w; }
     int out_height() const { return out_h; }
 private:

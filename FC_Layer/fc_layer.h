@@ -10,6 +10,11 @@ public:
     std::vector<float> backward(const std::vector<float>& grad_out) override;
     std::vector<std::vector<float>> forward_T(const std::vector<float>& x);
     std::vector<float> backward_T(const std::vector<std::vector<float>>& grad_out);
+
+
+    double grad_squared_norm() const;
+    void scale_grad(float scale);
+
     void update(float lr) override;
     void save_w(std::ofstream &in) override;
     void load_w(std::ifstream &out) override;

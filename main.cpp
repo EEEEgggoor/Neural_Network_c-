@@ -40,7 +40,7 @@ int main() {
         std::vector<CVLSample> train = load_cvl_dataset("train");
         std::vector<CVLSample> test  = load_cvl_dataset("cvl-strings-eval");
 
-        const float lr = 0.000005f;
+        const float lr = 0.0002f;
         const int epochs = 5;
 
         // Максимальная норма градиента после clip
@@ -97,6 +97,7 @@ int main() {
                 if (predicted == label_to_string(train[i].label)) correct++;
 
                 net.backward(grad);
+                net.clip_param_gradients(grad_clip_norm);
                 net.update(lr);
 
                 if (step % 100 == 0) {

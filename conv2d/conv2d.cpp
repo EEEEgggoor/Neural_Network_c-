@@ -110,3 +110,23 @@ void Conv2d::load_w(std::ifstream& in) {
                 in.read(reinterpret_cast<char*>(K[ck][ic][u].data()), size_kernel * sizeof(float));
     in.read(reinterpret_cast<char*>(bias.data()), count_kernel * sizeof(float));
 }
+
+double Conv2d::grad_squared_norm() const {
+    double s = 0.0;
+    for (const auto& ck : dK)
+        for (const auto& ic : ck)
+            for (const auto& row : ic)
+                for (float v : row)
+                    s += (double)v * v;
+    for (float v : dbias) s += (double)v * v;
+    return s;
+}
+
+void Conv2d::scale_grad(float scale) {
+    for (auto& ck : dK)
+        for (auto& ic : ck)
+            for (auto& row : ic)
+                for (float& v : row)
+                    v *= scale;
+    for (float& v : dbias) v *= scale;
+}

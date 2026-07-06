@@ -132,3 +132,19 @@ void FC_Layer::load_w(std::ifstream& in) {
         in.read(reinterpret_cast<char*>(W[i].data()), in_feat * sizeof(float));
     in.read(reinterpret_cast<char*>(b.data()), out_feat * sizeof(float));
 }
+
+double FC_Layer::grad_squared_norm() const {
+    double s = 0.0;
+    for (const auto& row : dW)
+        for (float v : row)
+            s += (double)v * v;
+    for (float v : db) s += (double)v * v;
+    return s;
+}
+
+void FC_Layer::scale_grad(float scale) {
+    for (auto& row : dW)
+        for (float& v : row)
+            v *= scale;
+    for (float& v : db) v *= scale;
+}
