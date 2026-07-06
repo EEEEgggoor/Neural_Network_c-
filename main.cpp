@@ -40,7 +40,7 @@ int main() {
         std::vector<CVLSample> train = load_cvl_dataset("train");
         std::vector<CVLSample> test  = load_cvl_dataset("cvl-strings-eval");
 
-        const float lr = 0.00005f;
+        const float lr = 0.000005f;
         const int epochs = 5;
 
         // Максимальная норма градиента после clip
