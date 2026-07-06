@@ -4,55 +4,50 @@
 #include "MaxPool/max_pool.h"
 #include "flatten.h"
 #include "fc_layer.h"
+#include "Pooling/pooling.h"
+#include "softmax_ce.h"
 #include <string>
 #include <fstream>
 
 
+constexpr int CANVAS_H = 32;
+constexpr int CANVAS_W = 400;
+
 struct CNN {
-    Conv2d conv1;      // 1x28x28  -> 8x26x26  
+    Conv2d conv1;     // 1x32x400  -> 8x30x398
     ReLu relu1;
-    MaxPool pool1;   // 8x26x26  -> 8x13x13  
-
-    Conv2d conv2;      // 8x13x13  -> 16x11x11 
+    MaxPool pool1;    // 8x30x398  -> 8x15x199
+    Conv2d conv2;     // 8x15x199  -> 16x13x197
     ReLu relu2;
-    MaxPool pool2;   // 16x11x11 -> 16x5x5
-
-    FlattenLayer flatten; // 16x5x5 -> 400 
-
-    FC_Layer fc1;       // 400 -> 64   
-    ReLu relu3;
-    FC_Layer fc2;       // 64 -> 10   
-
+    MaxPool pool2;    // 16x13x197 -> 16x6x98
+    Pooling pooling;  // схлопывает высоту 6 -> 1, остаётся 16 x 98 (T=98 шагов)
+    FC_Layer fc1;     // 16 -> 11, применяется 98 раз (общие веса для каждого шага)
     CNN()
-        : conv1(1, 28, 28, 8, 3),
-          pool1(8, 26, 26, 2),
-          conv2(8, 13, 13, 16, 3),
-          pool2(16, 11, 11, 2),
-          fc1(16 * 5 * 5, 64),
-          fc2(64, 10)
+        : conv1(1, CANVAS_H, CANVAS_W, 8, 3),
+          pool1(8, 30, 398, 2),
+          conv2(8, 15, 199, 16, 3),
+          pool2(16, 13, 197, 2),
+          pooling(16, 6, 98),
+          fc1(16, 11)
     {}
 
 
-    std::vector<float> forward(const std::vector<float>& x) {
+    std::vector<std::vector<float>> forward(const std::vector<float>& x) {
         auto a = conv1.forward(x);
         a = relu1.forward(a);
         a = pool1.forward(a);
         a = conv2.forward(a);
         a = relu2.forward(a);
         a = pool2.forward(a);
-        a = flatten.forward(a);
-        a = fc1.forward(a);
-        a = relu3.forward(a);
-        a = fc2.forward(a);
-        return a;
+        a = pooling.forward(a);       
+        std::vector<std::vector<float>> r = fc1.forward_T(a);
+        return r;
     }
 
 
-    void backward(std::vector<float> grad) {
-        grad = fc2.backward(grad);
-        grad = relu3.backward(grad);
-        grad = fc1.backward(grad);
-        grad = flatten.backward(grad);
+    void backward(std::vector<std::vector<float>> _grad) {
+        std::vector<float> grad = fc1.backward_T(_grad);
+        grad = pooling.backward(grad);
         grad = pool2.backward(grad);
         grad = relu2.backward(grad);
         grad = conv2.backward(grad);
@@ -66,7 +61,6 @@ struct CNN {
         conv1.update(lr);
         conv2.update(lr);
         fc1.update(lr);
-        fc2.update(lr);
     }
 
     void save(const std::string& path) {
@@ -74,7 +68,6 @@ struct CNN {
         conv1.save_w(out);
         conv2.save_w(out);
         fc1.save_w(out);
-        fc2.save_w(out);
     }
 
     void load(const std::string& path) {
@@ -82,6 +75,6 @@ struct CNN {
         conv1.load_w(in);
         conv2.load_w(in);
         fc1.load_w(in);
-        fc2.load_w(in);
     }
+
 };

@@ -44,7 +44,7 @@ std::vector<float> FC_Layer::backward(const std::vector<float> &dz){
         }
     }
 
-    //db_i = dz_i
+    //db_i = dz_iW
     db = dz;
 
 
@@ -56,6 +56,58 @@ std::vector<float> FC_Layer::backward(const std::vector<float> &dz){
         }
     }
     return dx;
+}
+
+
+std::vector<std::vector<float>> FC_Layer::forward_T(const std::vector<float> &T){
+
+    int num_step = T.size()/in_feat;
+
+    last_inputs_T.assign(num_step, std::vector<float>(in_feat));
+
+    std::vector<std::vector<float>> out(num_step, std::vector<float>(out_feat, 0.0f));
+    
+    for(int t = 0; t < num_step; t++){
+
+        //прямой проход каждого FC слоя 
+        for(int j = 0; j < in_feat; j++){
+            last_inputs_T[t][j] = T[t*in_feat + j];
+        }
+
+        for(int i = 0; i < out_feat; i++){
+            float sum = b[i];
+            for(int j = 0; j < in_feat; j++){
+                sum += W[i][j]*last_inputs_T[t][j];
+            }
+            out[t][i] = sum;
+        }
+    }
+    return out;
+}
+
+
+std::vector<float> FC_Layer::backward_T(const std::vector<std::vector<float>>& dz){
+
+    int num_step = dz.size();
+
+    dW.assign(out_feat, std::vector<float>(in_feat));
+    db.assign(out_feat, 0.0f); 
+
+    std::vector<float> dx_T(num_step * in_feat, 0.0f);
+
+    for(int t = 0; t < num_step; t++){
+
+        //обратный проход каждого FC слоя 
+        for(int i = 0; i < out_feat; i++){
+            db[i] += dz[t][i];
+            for (int j = 0; j < in_feat; j++){
+                dW[i][j] += dz[t][i] * last_inputs_T[t][j];
+                dx_T[t * in_feat + j] += W[i][j] * dz[t][i];
+            }
+        }
+
+    }
+    return dx_T;
 }
 
 void FC_Layer::update(float lr){

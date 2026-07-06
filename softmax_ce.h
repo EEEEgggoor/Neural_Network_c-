@@ -17,7 +17,7 @@ std::vector<float> softmax(const std::vector<float> &z){
     return exp_z;
 }
 
-float cross_entropy_loss_and_grad(const std::vector<float>& z, int label, std::vector<float>& grad_out) {
+float cross_entropy_loss_and_grad(const std::vector<float>& z, int label, std::vector<float> &grad_out) {
     std::vector<float> p = softmax(z);
     float loss = -std::log(p[label] + 1e-9f);
 

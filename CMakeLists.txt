@@ -10,6 +10,7 @@ set(SOURCES
     FC_Layer/fc_layer.cpp
     MaxPool/max_pool.cpp
     ReLu/relu.cpp
+    Pooling/pooling.cpp
 )
 
 add_executable(ml_project ${SOURCES})
@@ -22,6 +23,7 @@ target_include_directories(ml_project PRIVATE
     FC_Layer
     MaxPool
     ReLu
+    Pooling
 )
 
 if(NOT CMAKE_BUILD_TYPE)

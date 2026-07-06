@@ -1,9 +1,8 @@
 # ninja log v7
-42	1260	8048939970236359	CMakeFiles/ml_project.dir/ReLu/relu.cpp.obj	8df838f84e89574a
-27	1282	8048939970073279	CMakeFiles/ml_project.dir/MaxPool/max_pool.cpp.obj	cc5d11d7b7a87de
-19	2077	8048939970024028	CMakeFiles/ml_project.dir/FC_Layer/fc_layer.cpp.obj	b78cddfc078fa26b
-12	2898	8048939969899880	CMakeFiles/ml_project.dir/conv2d/conv2d.cpp.obj	681c618f5a235250
-3	9539	8048939969870095	CMakeFiles/ml_project.dir/main.cpp.obj	aeb92056c2d8e406
-9539	9780	8048940065228427	ml_project.exe	b9d88e870f91d284
-8	8148	8048943205854420	CMakeFiles/ml_project.dir/main.cpp.obj	aeb92056c2d8e406
-8148	8366	8048943287283089	ml_project.exe	b9d88e870f91d284
+46	1575	8050428848398296	CMakeFiles/ml_project.dir/ReLu/relu.cpp.obj	32010d5cfd813f1e
+27	1688	8050428848212879	CMakeFiles/ml_project.dir/MaxPool/max_pool.cpp.obj	77b199e048127ac6
+70	1977	8050428848644136	CMakeFiles/ml_project.dir/Pooling/pooling.cpp.obj	5c995408886f1441
+19	2936	8050428848133882	CMakeFiles/ml_project.dir/FC_Layer/fc_layer.cpp.obj	98298a20e481814e
+13	3530	8050428847994394	CMakeFiles/ml_project.dir/conv2d/conv2d.cpp.obj	c9d00ae2b2fd5a33
+6	10472	8050428847994394	CMakeFiles/ml_project.dir/main.cpp.obj	880d28fb095afa7c
+10473	10695	8050428952641684	ml_project.exe	b8ee2ac14b4bc1da

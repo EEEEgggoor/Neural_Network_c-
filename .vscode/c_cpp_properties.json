@@ -5,7 +5,8 @@
             "includePath": [
                 "${workspaceFolder}/**",
                 "${workspaceFolder}",
-                "${workspaceFolder}/FC_Layer"
+                "${workspaceFolder}/FC_Layer",
+                "${workspaceFolder}/Pooling"
             ],
             "defines": [
                 "_DEBUG",
