@@ -101,7 +101,7 @@ std::vector<float> FC_Layer::backward_T(const std::vector<std::vector<float>>& d
         for(int i = 0; i < out_feat; i++){
             db[i] += dz[t][i];
             for (int j = 0; j < in_feat; j++){
-                dW[i][j] += dz[t][i] * last_inputs_T[t][j];
+                dW[i][j] += dz[t][i] * last_inputs_T[t][j] / num_step;
                 dx_T[t * in_feat + j] += W[i][j] * dz[t][i];
             }
         }

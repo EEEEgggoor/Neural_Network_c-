@@ -42,7 +42,7 @@ int main() {
         std::vector<CVLSample> test  = load_cvl_dataset("cvl-strings-eval");
 
         const float lr = 0.00005f;
-        const int epochs = 3;
+        const int epochs = 10;
 
         std::cout << "Start epoch...\n";
          
@@ -60,6 +60,7 @@ int main() {
                 std::vector<std::vector<float>> grad;
                 auto p = softmax_T(logits);
                 float loss = ctc_loss_and_grad(p, train[i].label, grad);
+                net.clip_gradients(grad, 5.0f);
                 total_loss += loss;
 
                 std::string predicted = decode(logits);

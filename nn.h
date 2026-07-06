@@ -31,6 +31,26 @@ struct CNN {
           fc1(16, 11)
     {}
 
+    void clip_gradients(std::vector<std::vector<float>>& grad, float max_norm) {
+        double norm_sq = 0.0;
+        bool has_nan = false;
+        for (auto& row : grad)
+            for (float v : row) {
+                if (!std::isfinite(v)) { has_nan = true; break; }
+                norm_sq += (double)v * v;
+            }
+        if (has_nan) {
+            for (auto& row : grad)
+                for (float& v : row) v = 0.0f;
+            return;
+        }
+        double norm = std::sqrt(norm_sq);
+        if (norm > max_norm) {
+            float scale = (float)(max_norm / norm);
+            for (auto& row : grad)
+                for (float& v : row) v *= scale;
+        }
+    }
 
     std::vector<std::vector<float>> forward(const std::vector<float>& x) {
         auto a = conv1.forward(x);
