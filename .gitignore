@@ -1,4 +1,7 @@
 *.csv
+*.md
+*.exe
+*.txt
 train/
 cvl-strings-eval/
 build/

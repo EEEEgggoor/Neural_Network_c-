@@ -81,9 +81,9 @@ inline std::vector<float> load_digit_string_image(const std::string& path,
     int newW = std::max(1, (int)std::round(bboxW * scale));
 
 
-    if (newW > canvas_w) {
-        float shrink = static_cast<float>(canvas_w) / newW;
-        newW = canvas_w;
+    if (newW > canvas_w - 4) {
+        float shrink = static_cast<float>(canvas_w - 4) / newW;
+        newW = canvas_w - 4;
         newH = std::max(1, (int)std::round(newH * shrink));
     }
 

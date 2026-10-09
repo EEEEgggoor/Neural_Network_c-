@@ -3,6 +3,7 @@
 #include <iostream>
 #include <cmath>
 #include <limits>
+#include <stdexcept>
 #include "softmax_ce.h"
 
 #define CTC_NUM_CLASSES 11
@@ -36,11 +37,26 @@ double log_sum_exp(double log_a, double log_b) {
     return m + std::log(std::exp(log_a - m) + std::exp(log_b - m));
 }
 
-float ctc_loss_and_grad(const std::vector<std::vector<float>>& y, const std::vector<int>& label_seq, std::vector<std::vector<float>>& grad_out){
+float ctc_loss_impl(const std::vector<std::vector<float>>& y, const std::vector<int>& label_seq, std::vector<std::vector<float>>& grad_out, bool logits){
 
     int S = 2*label_seq.size() + 1;
     int T = y.size();
     int BLANK = 10;
+
+    if (T == 0) throw std::invalid_argument("CTC requires nonempty input");
+    for (const auto& row : y) {
+        if (row.size() != CTC_NUM_CLASSES) throw std::invalid_argument("CTC requires 11 classes");
+        for (float p : row)
+            if (!std::isfinite(p) || (!logits && (p < 0 || p > 1)))
+                throw std::invalid_argument("Invalid CTC probability");
+    }
+    int min_steps = static_cast<int>(label_seq.size());
+    for (size_t i = 0; i < label_seq.size(); ++i) {
+        if (label_seq[i] < 0 || label_seq[i] >= BLANK)
+            throw std::invalid_argument("CTC label must be a digit 0..9");
+        if (i && label_seq[i] == label_seq[i - 1]) ++min_steps;
+    }
+    if (T < min_steps) throw std::invalid_argument("Too few CTC steps for target and repeated digits");
 
     std::vector<int> label_seq_extend(S, 0);
 
@@ -52,9 +68,19 @@ float ctc_loss_and_grad(const std::vector<std::vector<float>>& y, const std::vec
 
 
     std::vector<std::vector<double>> log_y(T, std::vector<double>(CTC_NUM_CLASSES));
-    for (int t = 0; t < T; t++)
-        for (int k = 0; k < CTC_NUM_CLASSES; k++)
-            log_y[t][k] = std::log((double)y[t][k] + 1e-9);
+    for (int t = 0; t < T; t++) {
+        if (logits) {
+            double m = *std::max_element(y[t].begin(), y[t].end());
+            double sum = 0;
+            for (float z : y[t]) sum += std::exp(double(z) - m);
+            double log_sum = std::log(sum);
+            for (int k = 0; k < CTC_NUM_CLASSES; ++k)
+                log_y[t][k] = double(y[t][k]) - m - log_sum;
+        } else {
+            for (int k = 0; k < CTC_NUM_CLASSES; ++k)
+                log_y[t][k] = std::log(double(y[t][k]));
+        }
+    }
 
     std::vector<std::vector<double>> a(T, std::vector<double>(S, NEG_INF));
 
@@ -80,8 +106,7 @@ float ctc_loss_and_grad(const std::vector<std::vector<float>>& y, const std::vec
     // Z = a[T-1][S-1] + a[T-1][S-2])
     double logZ = (S > 1) ? log_sum_exp(a[T-1][S-1], a[T-1][S-2]) : a[T-1][S-1];
     if (logZ == NEG_INF || !std::isfinite(logZ)) {
-        grad_out.assign(T, std::vector<float>(CTC_NUM_CLASSES, 0.0f));
-        return 0.0f;
+        throw std::runtime_error("Non-finite CTC loss");
     }
 
 
@@ -92,7 +117,7 @@ float ctc_loss_and_grad(const std::vector<std::vector<float>>& y, const std::vec
 
     for (int t = T - 2; t >= 0; t--) {
         for (int s = S - 1; s >= 0; s--) {
-            double _b = b[t+1][s]; // переход в тот же символ (blank или повтор)
+            double _b = b[t+1][s] + log_y[t+1][label_seq_extend[s]]; // переход в тот же символ (blank или повтор)
 
             if (s + 1 < S) _b = log_sum_exp(_b, b[t+1][s+1] + log_y[t+1][label_seq_extend[s+1]]);
 
@@ -118,13 +143,12 @@ float ctc_loss_and_grad(const std::vector<std::vector<float>>& y, const std::vec
 
         for (int k = 0; k < CTC_NUM_CLASSES; k++){
             if (log_S_k[k] == NEG_INF) {
-                grad_out[t][k] = y[t][k];
+                grad_out[t][k] = float(std::exp(log_y[t][k]));
             } else {
                 // S_k[k] / Z  ->  exp(log_S_k[k] - logZ)
                 double exponent = log_S_k[k] - logZ;
-                exponent = std::min(exponent, 30.0);
                 double ratio = std::exp(exponent);
-                grad_out[t][k] = (float)((double)y[t][k] - ratio);
+                grad_out[t][k] = float(std::exp(log_y[t][k]) - ratio);
             }
         }
     }
@@ -132,4 +156,17 @@ float ctc_loss_and_grad(const std::vector<std::vector<float>>& y, const std::vec
     double Loss = -logZ;
 
     return (float)Loss;
+}
+
+float ctc_loss_and_grad(const std::vector<std::vector<float>>& probabilities,
+                        const std::vector<int>& labels,
+                        std::vector<std::vector<float>>& gradient) {
+    return ctc_loss_impl(probabilities, labels, gradient, false);
+}
+
+// Stable log-softmax avoids probability underflow and artificial probability floors.
+float ctc_logits_loss_and_grad(const std::vector<std::vector<float>>& logits,
+                               const std::vector<int>& labels,
+                               std::vector<std::vector<float>>& gradient) {
+    return ctc_loss_impl(logits, labels, gradient, true);
 }

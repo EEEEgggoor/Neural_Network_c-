@@ -14,6 +14,15 @@ public:
     double grad_squared_norm() const;   // сумма квадратов dK и dbias
     void scale_grad(float scale);       // умножить dK и dbias на scale
 
+    template<class Visitor> void visit_parameters(Visitor visit) {
+        for (int c = 0; c < count_kernel; ++c) {
+            for (int i = 0; i < in_channels; ++i)
+                for (int u = 0; u < size_kernel; ++u)
+                    for (int v = 0; v < size_kernel; ++v) visit(K[c][i][u][v], dK[c][i][u][v]);
+            visit(bias[c], dbias[c]);
+        }
+    }
+
     int in_weight() const { return out_w; }
     int out_height() const { return out_h; }
 private:

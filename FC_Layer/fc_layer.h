@@ -15,6 +15,13 @@ public:
     double grad_squared_norm() const;
     void scale_grad(float scale);
 
+    template<class Visitor> void visit_parameters(Visitor visit) {
+        for (int i = 0; i < out_feat; ++i) {
+            for (int j = 0; j < in_feat; ++j) visit(W[i][j], dW[i][j]);
+            visit(b[i], db[i]);
+        }
+    }
+
     void update(float lr) override;
     void save_w(std::ofstream &in) override;
     void load_w(std::ifstream &out) override;
